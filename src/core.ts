@@ -7,7 +7,7 @@
 //                 "hook"            a callback ref (supported React API, opt-in per element)
 //                 "react-internals" polling React's private props key (zero-touch, may break on upgrade)
 //
-// State lives on globalThis so instrumentation-client and client components share it
+// State lives on the global object so instrumentation-client and client components share it
 // even if the bundler gives them separate module instances.
 
 export const TIMING_ATTR = "data-timing";
@@ -41,7 +41,8 @@ type Registry = {
 const GLOBAL_KEY = "__elementTiming";
 
 function registry(): Registry {
-  const g = globalThis as typeof globalThis & { [GLOBAL_KEY]?: Registry };
+  // Safari 12.0 has no globalThis; window is the same object in every browser, and servers have globalThis.
+  const g = (typeof window === "undefined" ? globalThis : window) as typeof globalThis & { [GLOBAL_KEY]?: Registry };
   return (g[GLOBAL_KEY] ??= {
     events: [],
     listeners: new Set(),

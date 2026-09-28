@@ -43,7 +43,8 @@ try {
     }
   }).observe(document.documentElement, { childList: true, subtree: true });
 
-  if (PerformanceObserver.supportedEntryTypes.includes("element")) {
+  // supportedEntryTypes is missing before Chrome 73, Firefox 68 and Safari 12.1.
+  if (PerformanceObserver.supportedEntryTypes?.includes("element")) {
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries() as PerformanceElementTiming[]) {
         // renderTime is 0 for cross-origin images without Timing-Allow-Origin; fall back to loadTime.

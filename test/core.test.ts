@@ -122,3 +122,18 @@ describe("subscribe and clearEvents", () => {
     expect(getEvents()).not.toBe(before);
   });
 });
+
+describe("shared state", () => {
+  type WithRegistry = { __elementTiming?: { navigation: string } };
+
+  it("lives on window in the browser, so it works without globalThis (Safari 12.0)", () => {
+    startNavigation("/browser", 0);
+    expect((window as unknown as WithRegistry).__elementTiming?.navigation).toBe("/browser");
+  });
+
+  it("falls back to globalThis where there is no window", () => {
+    vi.stubGlobal("window", undefined);
+    startNavigation("/server", 0);
+    expect((globalThis as WithRegistry).__elementTiming?.navigation).toBe("/server");
+  });
+});

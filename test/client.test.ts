@@ -5,7 +5,7 @@ import { resetRegistry, tagged } from "./helpers.js";
 type ElementEntry = { element: Element | null; renderTime: number; loadTime: number };
 
 /** Stands in for PerformanceObserver so tests can deliver Element Timing entries. */
-function stubPerformanceObserver(supportedEntryTypes: string[]) {
+function stubPerformanceObserver(supportedEntryTypes: string[] | undefined) {
   const observers: { callback: (list: { getEntries(): ElementEntry[] }) => void; options?: unknown }[] = [];
   class FakePerformanceObserver {
     static supportedEntryTypes = supportedEntryTypes;
@@ -75,6 +75,17 @@ describe("client instrumentation", () => {
     const perf = stubPerformanceObserver(["navigation"]);
     await loadClient();
     expect(perf.observers).toEqual([]);
+  });
+
+  it("skips paint without warning where supportedEntryTypes is missing (Chrome < 73, Safari 12.0)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const perf = stubPerformanceObserver(undefined);
+    document.body.append(tagged("hero"));
+
+    await loadClient();
+    expect(perf.observers).toEqual([]);
+    expect(names("present")).toEqual(["hero"]);
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it("warns instead of throwing when instrumentation cannot start", async () => {

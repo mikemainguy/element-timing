@@ -35,6 +35,10 @@ export * from "next-element-timing/client";
 Everything else is the same as the [App Router quick start](./README.md#quick-start) or the
 [Pages Router](./PAGES_ROUTER.md) setup.
 
+Next.js 15 doesn't transpile packages in `node_modules`, so the package ships as ES2019. It runs in every
+browser Next.js 15 supports (Chrome 64+, Edge 79+, Firefox 67+, Safari 12+). `paint` events still need
+the Element Timing API, which only Chromium 77+ has.
+
 ## Next.js 13 – 15.2 (untested)
 
 These versions have no `instrumentation-client.ts`, and they're below the package's supported range
