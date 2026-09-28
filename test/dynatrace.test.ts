@@ -21,18 +21,21 @@ const event: TimingEvent = {
 };
 
 describe("toDynatraceFields", () => {
-  it("maps the event to prefixed event properties spanning navigation to phase", () => {
-    vi.spyOn(performance, "timeOrigin", "get").mockReturnValue(1_700_000_000_000);
-
-    expect(toDynatraceFields(event)).toEqual({
+  it("maps the event to prefixed event properties, with the delay before sending and no start_time", () => {
+    expect(toDynatraceFields(event, 6250.9)).toEqual({
       "event_properties.element_timing_name": "buy",
       "event_properties.element_timing_phase": "interactive",
       "event_properties.element_timing_source": "hook",
       "event_properties.element_timing_since_navigation": 250.4,
       "event_properties.element_timing_navigation": "/cart",
-      start_time: 1_700_000_001_000,
+      "event_properties.element_timing_send_delay": 5001,
       duration: 250,
     });
+  });
+
+  it("measures the send delay from performance.now() by default", () => {
+    vi.spyOn(performance, "now").mockReturnValue(1300);
+    expect(toDynatraceFields(event)[EVENT_PROPERTIES.sendDelay]).toBe(50);
   });
 
   it("only uses property keys Dynatrace accepts", () => {

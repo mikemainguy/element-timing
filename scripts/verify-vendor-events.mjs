@@ -26,7 +26,7 @@ const env = process.env;
 async function queryNewRelic() {
   const region = env.NEW_RELIC_REGION === "eu" ? "api.eu.newrelic.com" : "api.newrelic.com";
   const nrql =
-    `SELECT elementName AS name, phase, source, sinceNavigation, navigation FROM ElementTiming ` +
+    `SELECT elementName AS name, phase, source, sinceNavigation, navigation, sendDelay FROM ElementTiming ` +
     `WHERE elementName LIKE '${prefix}%' SINCE 1 day ago LIMIT MAX`;
   const response = await fetch(`https://${region}/graphql`, {
     method: "POST",
@@ -73,7 +73,8 @@ async function queryDynatrace() {
       "    phase = event_properties.element_timing_phase,",
       "    source = event_properties.element_timing_source,",
       "    sinceNavigation = event_properties.element_timing_since_navigation,",
-      "    navigation = event_properties.element_timing_navigation",
+      "    navigation = event_properties.element_timing_navigation,",
+      "    sendDelay = event_properties.element_timing_send_delay",
     ].join("\n"),
   );
   if (records.length > 0) return records;
@@ -169,9 +170,20 @@ console.table(
 );
 console.log("A '—' can mean the events are still in a vendor's upload queue; rerun in a minute to check.");
 
-const sample = results.get("Dynatrace")?.[0];
-if (sample) {
-  console.log("Dynatrace sample start_time/duration as stored:", { start_time: sample.start_time, duration: sample.duration });
+// Vendors timestamp events when they're sent; sendDelay says how late that was (see README "Timestamps").
+for (const vendor of vendors) {
+  const delays = results
+    .get(vendor.name)
+    .map((e) => e.sendDelay)
+    .filter((d) => d !== null && d !== undefined)
+    .map(Number);
+  const count = results.get(vendor.name).length;
+  if (count === 0) continue;
+  if (delays.length === 0) {
+    console.log(`${vendor.name}: no sendDelay on its events (older build, or not allow-listed in Dynatrace)`);
+  } else {
+    console.log(`${vendor.name}: sendDelay ${Math.min(...delays)}–${Math.max(...delays)} ms (${delays.length}/${count} events)`);
+  }
 }
 
 let failed = false;

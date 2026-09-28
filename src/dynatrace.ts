@@ -23,6 +23,7 @@ export const EVENT_PROPERTIES = {
   source: "event_properties.element_timing_source",
   sinceNavigation: "event_properties.element_timing_since_navigation",
   navigation: "event_properties.element_timing_navigation",
+  sendDelay: "event_properties.element_timing_send_delay",
 } as const;
 
 function rum() {
@@ -30,18 +31,21 @@ function rum() {
 }
 
 /**
- * Maps an event to sendEvent fields. The event spans from the navigation that rendered the
- * element to the phase: `start_time` is the navigation's wall-clock time in ms since the epoch,
- * and `duration` is `sinceNavigation`.
+ * Maps an event to sendEvent fields, `now` being when it's sent (performance.now()).
+ *
+ * Dynatrace ignores a `start_time` sent this way: it stores `end_time` as when the event was sent
+ * and `start_time` as `end_time - duration`. So `duration` is `sinceNavigation`, and
+ * `element_timing_send_delay` (ms) is how long the event waited to be sent, which makes
+ * `end_time - send_delay` when it happened, in Dynatrace's time-corrected clock.
  */
-export function toDynatraceFields(event: TimingEvent): Record<string, string | number> {
+export function toDynatraceFields(event: TimingEvent, now = performance.now()): Record<string, string | number> {
   return {
     [EVENT_PROPERTIES.name]: event.name,
     [EVENT_PROPERTIES.phase]: event.phase,
     [EVENT_PROPERTIES.source]: event.source,
     [EVENT_PROPERTIES.sinceNavigation]: event.sinceNavigation,
     [EVENT_PROPERTIES.navigation]: event.navigation,
-    start_time: Math.round(performance.timeOrigin + event.time - event.sinceNavigation),
+    [EVENT_PROPERTIES.sendDelay]: Math.round(now - event.time),
     duration: Math.round(event.sinceNavigation),
   };
 }

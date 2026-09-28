@@ -22,9 +22,13 @@ function agent() {
 }
 
 /**
- * A sink that records each timing event as a New Relic custom event of `eventType`. The element
- * name is sent as `elementName`: the agent adds its own `name` attribute (the page's transaction
- * name, e.g. "Unnamed Transaction") to every event, overwriting any `name` we send.
+ * A sink that records each timing event as a New Relic custom event of `eventType`.
+ *
+ * - The element name is sent as `elementName`: the agent adds its own `name` attribute (the page's
+ *   transaction name, e.g. "Unnamed Transaction") to every event, overwriting any `name` we send.
+ * - The agent stamps `timestamp` when the event is sent, which is later than it happened when events
+ *   are replayed after the agent loads. `sendDelay` (ms) is that gap, so `timestamp - sendDelay` is
+ *   when it happened, in the agent's server-corrected clock.
  */
 export function newRelicSink(eventType = DEFAULT_EVENT_TYPE): TimingSink {
   return {
@@ -38,6 +42,7 @@ export function newRelicSink(eventType = DEFAULT_EVENT_TYPE): TimingSink {
         time,
         sinceNavigation,
         navigation,
+        sendDelay: Math.round(performance.now() - time),
       }),
   };
 }

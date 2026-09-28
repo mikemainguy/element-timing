@@ -23,8 +23,9 @@ describe("newRelicSink", () => {
     expect(sink.isReady()).toBe(true);
   });
 
-  it("records the event's fields as a custom event, with the name as elementName", () => {
+  it("records the event's fields as a custom event, with the name as elementName and the send delay", () => {
     const recordCustomEvent = stubAgent();
+    vi.spyOn(performance, "now").mockReturnValue(5120.6);
 
     newRelicSink("Custom").send({
       name: "buy",
@@ -43,6 +44,8 @@ describe("newRelicSink", () => {
       time: 120,
       sinceNavigation: 20,
       navigation: "/cart",
+      // The agent stamps `timestamp` at send time; timestamp - sendDelay is when it happened.
+      sendDelay: 5001,
     });
   });
 
