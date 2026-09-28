@@ -98,3 +98,7 @@ navigation that rendered the element.
 - [Custom integrations and the full API](./CUSTOM_INTEGRATION.md)
 - [Timestamps in monitoring tools](./TIMESTAMPS.md)
 - [Contributing: building, testing and the live vendor harness](./CONTRIBUTING.md)
+
+## License
+
+[MIT](./LICENSE)
