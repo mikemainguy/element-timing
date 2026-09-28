@@ -142,7 +142,28 @@ transition that rendered the element.
   });
   ```
 
-- **API:** `getEvents()`, `subscribe(listener)`, `clearEvents()`, `startNavigation(url)` and
+- **Sinks:** to send events to a monitoring tool, implement a `TimingSink` and pass it to `connect()` from
+  a client component or your instrumentation-client file:
+
+  ```ts
+  import { connect, type TimingSink } from "next-element-timing";
+
+  const sink: TimingSink = {
+    name: "my-vendor",
+    isReady: () => typeof window.myVendor !== "undefined",
+    send: (event) => window.myVendor.track("ElementTiming", event),
+  };
+
+  const disconnect = connect(sink, { filter: (e) => e.phase === "interactive", sampleRate: 0.1 });
+  ```
+
+  `connect` replays events recorded before it was called and holds events until `isReady()` is true,
+  checking every `retryMs` (250 ms) for up to `timeoutMs` (30 s). After that it checks again only when
+  a new event is recorded. It delivers each event once and catches errors from the sink, logging only
+  the first. `sampleRate` is decided once per `connect()` call, so a sampled page load reports all its
+  events. Events cleared with `clearEvents()` before the sink is ready are not delivered.
+
+- **API:** `getEvents()`, `subscribe(listener)`, `clearEvents()`, `startNavigation(url)`, `connect(sink, options)` and
   `trackPagesRouter(router)` from `next-element-timing`.
 
 ## Caveats

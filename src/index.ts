@@ -10,6 +10,7 @@ export {
   type TimingSource,
 } from "./core.js";
 export { trackPagesRouter, type PagesRouterLike } from "./pages.js";
+export { connect, type ConnectOptions, type TimingSink } from "./sinks.js";
 export { timingProps } from "./timed.js";
 
 // Lets `elementtiming="…"` (the Element Timing API attribute) type-check in JSX.

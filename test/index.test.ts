@@ -6,6 +6,7 @@ describe("package entry point", () => {
     expect(Object.keys(api).sort()).toEqual([
       "TIMING_ATTR",
       "clearEvents",
+      "connect",
       "getEvents",
       "record",
       "startNavigation",
