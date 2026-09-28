@@ -156,6 +156,9 @@ transition that rendered the element.
 
 ```sh
 npm run build          # tsc → dist/
+npm test               # vitest (jsdom) unit tests in test/
+npm run test:coverage  # same, failing below 100% statement/branch/function/line coverage of src/
+npm run typecheck      # tsc over src/ and test/ without emitting
 npm pack               # cleans, rebuilds and packs dist/ + src/
 npm run check:react18  # packs, installs into fixtures/pages-react18 (React 18.3.1) in a temp dir, builds
 ```
