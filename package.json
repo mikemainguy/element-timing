@@ -60,5 +60,9 @@
     "react-dom": "^19.3.0",
     "typescript": "^5",
     "vitest": "^5.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikemainguy/element-timing.git"
   }
 }
