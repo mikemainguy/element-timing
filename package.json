@@ -26,6 +26,10 @@
     "./newrelic": {
       "types": "./dist/newrelic.d.ts",
       "default": "./dist/newrelic.js"
+    },
+    "./dynatrace": {
+      "types": "./dist/dynatrace.d.ts",
+      "default": "./dist/dynatrace.js"
     }
   },
   "files": [

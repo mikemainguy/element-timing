@@ -182,6 +182,29 @@ transition that rendered the element.
   WHERE phase = 'interactive' FACET name, source SINCE 1 day ago
   ```
 
+- **Dynatrace (new RUM experience):** call `connectDynatrace()` once on the client:
+
+  ```ts
+  import { connectDynatrace } from "next-element-timing/dynatrace";
+
+  connectDynatrace(); // accepts the same options as connect()
+  ```
+
+  Each event is sent with `dynatrace.sendEvent` as a custom event. The event spans from the
+  navigation that rendered the element to the phase, so `start_time` is the navigation's time and
+  `duration` is `sinceNavigation`, rounded to whole milliseconds. **Dynatrace discards event
+  properties that aren't defined in its web UI**, so define these first:
+
+  | Property                                           | Type   |
+  | -------------------------------------------------- | ------ |
+  | `event_properties.element_timing_name`             | string |
+  | `event_properties.element_timing_phase`            | string |
+  | `event_properties.element_timing_source`           | string |
+  | `event_properties.element_timing_since_navigation` | double |
+  | `event_properties.element_timing_navigation`       | string |
+
+  The keys are also exported as `EVENT_PROPERTIES`. RUM Classic (`dtrum`) isn't supported.
+
 - **API:** `getEvents()`, `subscribe(listener)`, `clearEvents()`, `startNavigation(url)`, `connect(sink, options)` and
   `trackPagesRouter(router)` from `next-element-timing`.
 
