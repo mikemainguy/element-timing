@@ -22,6 +22,10 @@
     "./panel": {
       "types": "./dist/panel.d.ts",
       "default": "./dist/panel.js"
+    },
+    "./newrelic": {
+      "types": "./dist/newrelic.d.ts",
+      "default": "./dist/newrelic.js"
     }
   },
   "files": [

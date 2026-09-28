@@ -163,6 +163,25 @@ transition that rendered the element.
   the first. `sampleRate` is decided once per `connect()` call, so a sampled page load reports all its
   events. Events cleared with `clearEvents()` before the sink is ready are not delivered.
 
+- **New Relic:** call `connectNewRelic()` once on the client, for example in your instrumentation-client
+  file after the client module:
+
+  ```ts
+  import { connectNewRelic } from "next-element-timing/newrelic";
+
+  connectNewRelic(); // accepts the same options as connect(), plus eventType (default "ElementTiming")
+  ```
+
+  Each event becomes an `ElementTiming` custom event with the attributes `name`, `phase`, `source`,
+  `time`, `sinceNavigation` and `navigation`, plus the agent's usual page and session attributes. This
+  uses `newrelic.recordCustomEvent`, so it needs the Pro or Pro+SPA browser agent, v1.277.0 or later.
+  With the Lite agent or an older version, nothing is sent. Example query:
+
+  ```sql
+  SELECT percentile(sinceNavigation, 50, 75, 95) FROM ElementTiming
+  WHERE phase = 'interactive' FACET name, source SINCE 1 day ago
+  ```
+
 - **API:** `getEvents()`, `subscribe(listener)`, `clearEvents()`, `startNavigation(url)`, `connect(sink, options)` and
   `trackPagesRouter(router)` from `next-element-timing`.
 
