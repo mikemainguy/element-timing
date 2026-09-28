@@ -21,14 +21,18 @@ function agent() {
   return (window as Window & { newrelic?: Partial<NewRelicBrowserApi> }).newrelic;
 }
 
-/** A sink that records each timing event as a New Relic custom event of `eventType`. */
+/**
+ * A sink that records each timing event as a New Relic custom event of `eventType`. The element
+ * name is sent as `elementName`: the agent adds its own `name` attribute (the page's transaction
+ * name, e.g. "Unnamed Transaction") to every event, overwriting any `name` we send.
+ */
 export function newRelicSink(eventType = DEFAULT_EVENT_TYPE): TimingSink {
   return {
     name: "newrelic",
     isReady: () => typeof agent()?.recordCustomEvent === "function",
     send: ({ name, phase, source, time, sinceNavigation, navigation }) =>
       (agent() as NewRelicBrowserApi).recordCustomEvent(eventType, {
-        name,
+        elementName: name,
         phase,
         source,
         time,

@@ -43,7 +43,9 @@
     "check:react18": "scripts/check-react18.sh",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p tsconfig.test.json"
+    "typecheck": "tsc -p tsconfig.test.json",
+    "harness": "scripts/harness.sh",
+    "verify:vendors": "node --env-file-if-exists=.harness/.env scripts/verify-vendor-events.mjs"
   },
   "peerDependencies": {
     "next": ">=15.3.0",

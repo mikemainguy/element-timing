@@ -172,14 +172,16 @@ transition that rendered the element.
   connectNewRelic(); // accepts the same options as connect(), plus eventType (default "ElementTiming")
   ```
 
-  Each event becomes an `ElementTiming` custom event with the attributes `name`, `phase`, `source`,
-  `time`, `sinceNavigation` and `navigation`, plus the agent's usual page and session attributes. This
+  Each event becomes an `ElementTiming` custom event with the attributes `elementName`, `phase`,
+  `source`, `time`, `sinceNavigation` and `navigation`, plus the agent's usual page and session
+  attributes. The element's name goes in `elementName` because the agent overwrites `name` with its own
+  transaction name. This
   uses `newrelic.recordCustomEvent`, so it needs the Pro or Pro+SPA browser agent, v1.277.0 or later.
   With the Lite agent or an older version, nothing is sent. Example query:
 
   ```sql
   SELECT percentile(sinceNavigation, 50, 75, 95) FROM ElementTiming
-  WHERE phase = 'interactive' FACET name, source SINCE 1 day ago
+  WHERE phase = 'interactive' FACET elementName, source SINCE 1 day ago
   ```
 
 - **Dynatrace (new RUM experience):** call `connectDynatrace()` once on the client:
@@ -193,17 +195,18 @@ transition that rendered the element.
   Each event is sent with `dynatrace.sendEvent` as a custom event. The event spans from the
   navigation that rendered the element to the phase, so `start_time` is the navigation's time and
   `duration` is `sinceNavigation`, rounded to whole milliseconds. **Dynatrace discards event
-  properties that aren't defined in its web UI**, so define these first:
+  properties that aren't on the frontend's allow list**, so add these first. In Experience Vitals, open
+  your web frontend, then go to **Settings** → **Capture properties** → **Allowed API-reported
+  properties** → **New property**. Enter each key without the `event_properties.` prefix, because
+  Dynatrace adds it:
 
-  | Property                                           | Type   |
-  | -------------------------------------------------- | ------ |
-  | `event_properties.element_timing_name`             | string |
-  | `event_properties.element_timing_phase`            | string |
-  | `event_properties.element_timing_source`           | string |
-  | `event_properties.element_timing_since_navigation` | double |
-  | `event_properties.element_timing_navigation`       | string |
+  - `element_timing_name`
+  - `element_timing_phase`
+  - `element_timing_source`
+  - `element_timing_since_navigation`
+  - `element_timing_navigation`
 
-  The keys are also exported as `EVENT_PROPERTIES`. RUM Classic (`dtrum`) isn't supported.
+  The full keys are also exported as `EVENT_PROPERTIES`. RUM Classic (`dtrum`) isn't supported.
 
 - **API:** `getEvents()`, `subscribe(listener)`, `clearEvents()`, `startNavigation(url)`, `connect(sink, options)` and
   `trackPagesRouter(router)` from `next-element-timing`.
@@ -228,3 +231,29 @@ npm run check:react18  # packs, installs into fixtures/pages-react18 (React 18.3
 
 `check:react18` uses a plain `npm install`, so it also catches peer-range regressions. To try the
 fixture in a browser, run `KEEP=1 npm run check:react18`, then `npm start` in the directory it prints.
+
+### Live test against New Relic and Dynatrace
+
+`npm run harness` serves `fixtures/vendors-app`, an App Router app that loads your real vendor scripts
+and calls `connectNewRelic()` and `connectDynatrace()`. `npm run verify:vendors` then queries each
+vendor's API to check that the events arrived. Configuration lives in `.harness/`, which is gitignored:
+
+1. `mkdir .harness && cp scripts/harness.env.example .harness/.env`, then fill it in. You can leave a
+   vendor's values empty to skip that vendor.
+   - **New Relic:** save the browser app's copy-paste snippet (Pro or Pro+SPA, agent v1.277.0+) as
+     `.harness/newrelic-snippet.html`. For querying, set the account id and a user API key (`NRAK-…`).
+   - **Dynatrace:** set `DYNATRACE_RUM_SCRIPT_URL` to the JavaScript tag URL of a web frontend that
+     uses the new RUM experience, and define the five event properties listed above. For querying, set
+     the environment URL (`https://<id>.apps.dynatrace.com`) and a platform token with the
+     `storage:user.events:read` scope.
+2. Run `npm run harness`. It packs the library, builds the app in a temp dir and starts it on port 3100
+   (set `PORT` to change it). It prints a URL containing a run id. Open that URL in Chrome, click the
+   button, go to page two and click its button there too. Then keep the tab open for about 30 s,
+   because the agents batch their uploads.
+3. In another terminal, run `npm run verify:vendors -- <run id>`. It retries for up to 3 minutes
+   (`--timeout <seconds>`) while the vendors ingest, then prints the events each vendor received
+   (element, phase:source and sinceNavigation). It exits 1 if a configured vendor never got the
+   button's `interactive:hook` event.
+
+To test events recorded before the vendor scripts load, run `DELAY_MS=5000 npm run harness`, which
+injects the vendor scripts 5 s after hydration. The page shows whether each vendor is ready yet.

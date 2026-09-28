@@ -23,21 +23,27 @@ describe("newRelicSink", () => {
     expect(sink.isReady()).toBe(true);
   });
 
-  it("records the event's fields as a custom event", () => {
+  it("records the event's fields as a custom event, with the name as elementName", () => {
     const recordCustomEvent = stubAgent();
-    const event = {
+
+    newRelicSink("Custom").send({
       name: "buy",
       phase: "interactive",
       source: "hook",
       time: 120,
       sinceNavigation: 20,
       navigation: "/cart",
-    } as const;
+    });
 
-    newRelicSink("Custom").send(event);
-
-    expect(recordCustomEvent).toHaveBeenCalledWith("Custom", { ...event });
-    expect(recordCustomEvent.mock.calls[0][1]).not.toBe(event);
+    // Not `name`: the agent overwrites that with its own transaction name.
+    expect(recordCustomEvent).toHaveBeenCalledWith("Custom", {
+      elementName: "buy",
+      phase: "interactive",
+      source: "hook",
+      time: 120,
+      sinceNavigation: 20,
+      navigation: "/cart",
+    });
   });
 
   it("uses the ElementTiming event type by default", () => {
@@ -60,7 +66,7 @@ describe("connectNewRelic", () => {
     vi.advanceTimersByTime(250);
 
     expect(recordCustomEvent).toHaveBeenCalledTimes(1);
-    expect(recordCustomEvent).toHaveBeenCalledWith("Timing", expect.objectContaining({ name: "buy", time: 30 }));
+    expect(recordCustomEvent).toHaveBeenCalledWith("Timing", expect.objectContaining({ elementName: "buy", time: 30 }));
 
     disconnect();
     vi.useRealTimers();
@@ -70,6 +76,6 @@ describe("connectNewRelic", () => {
     const recordCustomEvent = stubAgent();
     connectNewRelic();
     record(tagged("hero"), "present", "dom", 1);
-    expect(recordCustomEvent).toHaveBeenCalledWith("ElementTiming", expect.objectContaining({ name: "hero" }));
+    expect(recordCustomEvent).toHaveBeenCalledWith("ElementTiming", expect.objectContaining({ elementName: "hero" }));
   });
 });
