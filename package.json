@@ -1,6 +1,6 @@
 {
   "name": "next-element-timing",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Time when tagged elements appear, paint, and become interactive (event handlers live) in Next.js App Router apps.",
   "type": "module",
   "license": "MIT",
