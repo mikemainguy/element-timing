@@ -7,6 +7,16 @@
   "sideEffects": [
     "./dist/client.js"
   ],
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "client": ["./dist/client.d.ts"],
+      "next": ["./dist/next.d.ts"],
+      "panel": ["./dist/panel.d.ts"],
+      "newrelic": ["./dist/newrelic.d.ts"],
+      "dynatrace": ["./dist/dynatrace.d.ts"]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
